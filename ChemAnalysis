@@ -1,0 +1,114 @@
+def molform(compound_formula):
+    """(str) -> dictionary
+    When passed a string of the compound formula, returns a dictionary
+    with the elements as keys and the number of atoms of that element as values.
+    When the string is empty, return an empty dictionary
+    >>> molform("C2H6O1")
+    {'C': 2, 'H': 6, 'O': 1}
+    >>> molform("Cr1H4")
+    {'Cr': 1, 'H': 4}
+    >>> molform("C132983H211861N36149O40883S693")
+    {'C': 132983, 'H': 211861, 'N': 36149, 'O': 40883, 'S': 693}
+    """
+    name = []
+    for i in range(len(compound_formula)):
+        if not str.isdigit(compound_formula[i]) and not str.isdigit(compound_formula[i+1]):
+            name.append(compound_formula[i:i+2])
+        elif not str.isdigit(compound_formula[i]) and str.isdigit(compound_formula[i-1]):
+            name.append(compound_formula[i])
+        elif str.isdigit(compound_formula[i]):
+            pass
+    num = []
+    amount = []
+    am = []
+    x = []
+    for i in range(0,len(compound_formula)):
+        while str.isdigit(compound_formula[i]):
+            x.extend(compound_formula[i])
+            break
+        if not str.isdigit(compound_formula[i]) and len(x) != 0 or i == len(compound_formula)-1 and len(x) != 0:
+            num.append(x)
+            x=[]
+    for i in range(len(num)):
+        num[i] = int(''.join(num[i]))
+    dic = {}
+    for i in range(len(num)):
+        dic[name[i]] = num[i]
+    return dic
+
+
+
+def compound_properties(csv_name, compound_formula):
+    """(str, str) -> tuple
+    This function takes two parameters: the csv filename and the formula of the compound.
+  
+    It should call the molform() function to get the composition of the molecule and
+    get the required property from the csv file. The csv file will have all the
+    properties required.
+    This function is required to return a tuple of three properties:
+    1. The NAME of the atom with the lowest boiling point. 
+        For example, if it's oxygen, return 'Oxygen', not 'O'
+    2. The average (mean) of the atoms' boiling point in the molecule, round to the nearest integer
+        For example, for FeSO4, it's the average boiling point of Fe, S and O,
+        do not multiply the boiling point by the number of the atoms
+    3. The molecular mass of the compound, round to the nearest integer
+        For example, C1O2 (carbon dioxide) has weight of 12*1+16*2 = 44
+    """
+    r = open(csv_name,mode='r')
+    lines = []
+    l = r.readlines()
+    
+    for i in range(len(l)):
+      lines.append(l[i].split(','))
+    
+    for i in lines:
+      i[1] = i[1][1:-1]
+      i[2] = i[2][1:]
+      i[4] = i[4][:-1]
+    
+    comp = molform(compound_formula)
+    
+    name = []
+    for i in range(len(compound_formula)):
+        if not str.isdigit(compound_formula[i]) and not str.isdigit(compound_formula[i+1]):
+            name.append(compound_formula[i:i+2])
+        elif not str.isdigit(compound_formula[i]) and str.isdigit(compound_formula[i-1]):
+            name.append(compound_formula[i])
+        elif str.isdigit(compound_formula[i]):
+            pass
+          
+          
+    # lowest boiling point
+    elements = []
+    for i in lines:
+      for x in name:
+        if x in i:
+          elements.append(i)
+          
+    bp = []
+    boilPoint = []
+    for i in elements:
+      bp.append(i[4])
+    for i in bp:
+      boilPoint.append(int(i))
+    ind = boilPoint.index(min(boilPoint))
+    
+    lowestBoilingPoint = elements[ind][2]
+    
+    # average boiling point
+    
+    avg = round(sum(boilPoint)/len(boilPoint))
+    
+    # molecular mass
+    
+    numAtoms = []
+    for i in name:
+      numAtoms.append(comp[i])
+    
+    mass = []
+    mass = []
+    for i in elements:
+      mass.append(comp[i[1]]*float(i[3]))
+    
+    molMass = round(sum(mass))
+    return (lowestBoilingPoint, avg, molMass)
